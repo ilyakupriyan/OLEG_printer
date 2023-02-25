@@ -1,5 +1,3 @@
-//Формат листов А3
-//Расширения файлов, доступных для печати: pdf, jpeg
 #include <stdio.h>
 #include <cups/cups.h>
 #include <string.h>
@@ -30,7 +28,8 @@ int main(int argc, char *argv[])
         cups_ptype_t        type = 0,       //фильтр типа принтера
                             mask = 0;       //маска типа принтера
 
-        for (i = 2; i < argc; i++) {
+        for (i = 2; i < argc; i++) 
+        {
             if (!strcmp(argv[i], "grayscale")) 
             {
                 type |= CUPS_PRINTER_BW;
