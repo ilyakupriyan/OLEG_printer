@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "--enum")) 
     {
         int                 i,              //переменная для for
-                            flag;           //флаг для  cupsEnumDests()
+                            flag = 0;           //флаг для  cupsEnumDests()
         cups_ptype_t        type = 0,       //фильтр типа принтера
                             mask = 0;       //маска типа принтера
 
@@ -125,6 +125,16 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    if (argc == 2 || (!strcmp(argv[2], "supported") && argc < 6))
+    {
+        if (argc > 3)
+            show_supported(http, dest, dinfo, argv[3], argv[4]);
+        else if (argc > 2)
+            show_supported(http, dest, dinfo, argv[3], NULL);
+        else
+            show_supported(http, dest, dinfo, NULL, NULL);
+    }
+
     if (!strcmp(argv[2], "conflicts") && argc > 3)
     {
         int			i,		                /* Looping var */
@@ -145,7 +155,18 @@ int main(int argc, char *argv[])
             show_supported(http, dest, dinfo, NULL, NULL);
     }
 
-
+    else if (!strcmp(argv[2], "print") && argc > 3)         /*print option*/
+    {
+            int			              i,		/* Looping var */
+                        num_options = 0;        /* Number of options */
+        cups_option_t	*options = NULL;        /* Options */
+        for (i = 4; i < argc; i ++)
+            num_options = cupsParseOptions(argv[i], num_options, &options);
+        print_file(http, dest, dinfo, argv[3], num_options, options);
+    }
+    else
+        usage(argv[2]);
+       
     return 0;
 }
 
@@ -188,27 +209,27 @@ static void show_supported(http_t   *http,	    /* I - Connection to destination 
         attr = cupsFindDestSupported(http, dest, dinfo, "job-creation-attributes");
         if (attr)
         {
-        count = ippGetCount(attr);
-        for (i = 0; i < count; i ++)
-            show_supported(http, dest, dinfo, ippGetString(attr, i, NULL), NULL);
-        }
+            count = ippGetCount(attr);
+            for (i = 0; i < count; i ++)
+                show_supported(http, dest, dinfo, ippGetString(attr, i, NULL), NULL);
+        }  
         else
         {
-        static const char * const options[] =
-        {					/* List of standard options */
-            CUPS_COPIES,
-	        CUPS_FINISHINGS,
-	        CUPS_MEDIA,
-	        CUPS_NUMBER_UP,
-	        CUPS_ORIENTATION,
-	        CUPS_PRINT_COLOR_MODE,
-	        CUPS_PRINT_QUALITY,
-	        CUPS_SIDES
-        };
-        puts("No job-creation-attributes-supported attribute, probing instead.");
-        for (i = 0; i < (int)(sizeof(options) / sizeof(options[0])); i ++)
-            if (cupsCheckDestSupported(http, dest, dinfo, options[i], NULL))
-	            show_supported(http, dest, dinfo, options[i], NULL);
+            static const char * const options[] =
+            {					/* List of standard options */
+                CUPS_COPIES,
+                CUPS_FINISHINGS,
+                CUPS_MEDIA,
+                CUPS_NUMBER_UP,
+                CUPS_ORIENTATION,
+                CUPS_PRINT_COLOR_MODE,
+                CUPS_PRINT_QUALITY,
+                CUPS_SIDES
+            };
+            puts("No job-creation-attributes-supported attribute, probing instead.");
+            for (i = 0; i < (int)(sizeof(options) / sizeof(options[0])); i ++)
+                if (cupsCheckDestSupported(http, dest, dinfo, options[i], NULL))
+                    show_supported(http, dest, dinfo, options[i], NULL);
         }
     }
     else if (!value)
