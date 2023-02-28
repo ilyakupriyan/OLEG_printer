@@ -1,3 +1,6 @@
+#enable tracking .gitignore
+cat .gitignore
+
 print
 .vscode/
 .config
