@@ -1,0 +1,5 @@
+print
+.vscode/
+.config
+.gitignore
+*.pdf
