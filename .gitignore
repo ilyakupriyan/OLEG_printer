@@ -1,8 +1,8 @@
 #enable tracking .gitignore
 cat .gitignore
 
-print
+#vscode
 .vscode/
-.config
-.gitignore
+
+print
 *.pdf

@@ -6,6 +6,7 @@
 static int	enum_cb (void *user_data, unsigned flags, cups_dest_t *dest);
 static void	show_supported(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *option, const char *value);
 static void usage (const char *arg) __attribute__((noreturn));
+static void	show_conflicts(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, int num_options, cups_option_t *options);
 static void	print_file(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *filename, int num_options, cups_option_t *options);
 
 int main(int argc, char *argv[]) 
