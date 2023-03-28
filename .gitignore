@@ -1,8 +1,10 @@
 #enable tracking .gitignore
 cat .gitignore
 
-#vscode
+#vscode files
 .vscode/
 
-print
 *.pdf
+
+#makefiles
+build/

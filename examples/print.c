@@ -7,7 +7,7 @@ static int	enum_cb (void *user_data, unsigned flags, cups_dest_t *dest);
 static void	show_supported(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *option, const char *value);
 static void usage (const char *arg) __attribute__((noreturn));
 static void	show_conflicts(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, int num_options, cups_option_t *options);
-static void	print_file(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *filename, int num_options, cups_option_t *options);
+static void	printFile(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *filename, int num_options, cups_option_t *options);
 
 int main(int argc, char *argv[]) 
 {
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     if (!strcmp(argv[1], "--enum")) 
     {
         int                 i,              //переменная для for
-                            flag = 0;           //флаг для  cupsEnumDests()
+                            flag = 0;       //флаг для  cupsEnumDests()
         cups_ptype_t        type = 0,       //фильтр типа принтера
                             mask = 0;       //маска типа принтера
 
@@ -145,16 +145,6 @@ int main(int argc, char *argv[])
         show_conflicts(http, dest, dinfo, num_options, options);
     }
 
-    if (argc == 2 || (!strcmp(argv[2], "supported") && argc < 6))
-    {
-        if (argc > 3)
-            show_supported(http, dest, dinfo, argv[3], argv[4]);
-        else if (argc > 2)
-            show_supported(http, dest, dinfo, argv[3], NULL);
-        else
-            show_supported(http, dest, dinfo, NULL, NULL);
-    }
-
     else if (!strcmp(argv[2], "print") && argc > 3)         /*print option*/
     {
             int			              i,		/* Looping var */
@@ -162,7 +152,7 @@ int main(int argc, char *argv[])
         cups_option_t	*options = NULL;        /* Options */
         for (i = 4; i < argc; i ++)
             num_options = cupsParseOptions(argv[i], num_options, &options);
-        print_file(http, dest, dinfo, argv[3], num_options, options);
+        printFile(http, dest, dinfo, argv[3], num_options, options);
     }
     else
         usage(argv[2]);
@@ -326,8 +316,8 @@ static void show_conflicts(
     (void)num_options;
     (void)options;
 }
-
-static void print_file( http_t        *http,		/* I - Connection to destination */
+    
+static void printFile( http_t        *http,		/* I - Connection to destination */
                         cups_dest_t   *dest,		/* I - Destination */
 	                    cups_dinfo_t  *dinfo,	    /* I - Destination information */
                         const char    *filename,	/* I - File to print */

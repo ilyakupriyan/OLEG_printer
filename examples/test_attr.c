@@ -2,7 +2,7 @@
 #include <cups/cups.h>
 #include <errno.h>
 
-static void	print_file(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *filename, int num_options, cups_option_t *options);
+static void	printFile(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *filename, int num_options, cups_option_t *options);
 ipp_t *getPrinterAttr(cups_dest_t *dest);
 
 int main (int argc, char *argv[]) {
@@ -10,6 +10,7 @@ int main (int argc, char *argv[]) {
     http_t	        *http;			/* Connection to destination */
     cups_dest_t	    *dest = NULL;	/* Destination */
     cups_dinfo_t	*dinfo;			/* Destination info */
+    int job_id;                     /* ID of job*/
 
 
     if (!strncmp(argv[1], "ipp://", 6) || !strncmp(argv[1], "ipps://", 7))
@@ -37,14 +38,70 @@ int main (int argc, char *argv[]) {
 
     if (!strcmp(argv[2], "print") && argc > 3)  /*print option*/
     {
-                    int			      i,		/* Looping var */
-                        num_options = 0;        /* Number of options */
+                int			          i,		/* Looping var */
+                        num_options = 0,        /* Number of options */
+                               num_jobs;        /* destination number of jobs */
         cups_option_t	*options = NULL;        /* Options */
-        
+        char           file_print[1024];     
+        ipp_status_t             status;   
+        ipp_jstate_t          job_state = IPP_JOB_PENDING;
+        cups_job_t                *jobs;        /* Jobs of destination */
+
+
         for (i = 4; i < argc; i ++)
             num_options = cupsParseOptions(argv[i], num_options, &options);
-        print_file(http, dest, dinfo, argv[3], num_options, options);
+        job_id = cupsPrintFile(dest->name, argv[3], "Test print", num_options, options);
+
+
+        if ((status = cupsFinishDestDocument(http, dest, dinfo)) > IPP_STATUS_OK_IGNORED_OR_SUBSTITUTED) 
+        {
+            printf("Unable to send document: %s\n", cupsLastErrorString());
+            return;
+        }
+
+        while (job_state < IPP_JOB_STOPPED)
+        {
+
+            num_jobs = cupsGetJobs(&jobs, dest->name, 1, CUPS_WHICHJOBS_ALL);
+
+            /* Selection of job state in destination */
+            job_state = jobs[job_id].state;
+
+            /* Show the current state */
+            switch (job_state)
+            {
+                case IPP_JOB_PENDING :
+                    printf("Job %d is pending.\n", job_id);
+                    break;
+                case IPP_JOB_HELD :
+                    printf("Job %d is held.\n", job_id);
+                    break;
+                case IPP_JOB_PROCESSING :
+                    printf("Job %d is processing.\n", job_id);
+                    break;
+                case IPP_JOB_STOPPED :
+                    printf("Job %d is stopped.\n", job_id);
+                    break;
+                case IPP_JOB_CANCELED :
+                    printf("Job %d is canceled.\n", job_id);
+                    break;
+                case IPP_JOB_ABORTED :
+                    printf("Job %d is aborted.\n", job_id);
+                    break;
+                case IPP_JOB_COMPLETED :
+                    printf("Job %d is completed.\n", job_id);
+                    break;
+            }
+
+            /* Sleep if the job is not finished */
+            if (job_state < IPP_JOB_STOPPED)
+                sleep(5);
+        }
     }
+
+/*
+ *   Part of printer response    
+ */
 
     /*Start setting IPP request*/
     ipp_attribute_t *attr;
@@ -72,60 +129,6 @@ int main (int argc, char *argv[]) {
 
     ippDelete(response);
     return 0;
-}
-
-static void print_file( http_t        *http,		/* I - Connection to destination */
-                        cups_dest_t   *dest,		/* I - Destination */
-	                    cups_dinfo_t  *dinfo,	    /* I - Destination information */
-                        const char    *filename,	/* I - File to print */
-	                    int           num_options,	/* I - Number of options */
-	                    cups_option_t *options)	    /* I - Options */
-{  
-
-    cups_file_t            *fp;			/* File to print */
-    int                 job_id;			/* Job ID */
-    ipp_status_t	    status;		    /* Submission status */
-    const char	        *title;			/* Title of job */
-    char		        buffer[32768];	/* File buffer */
-    ssize_t         	bytes;			/* Bytes read/to write */
-
-    if ((fp = cupsFileOpen(filename, "r")) == NULL) 
-    {
-        printf("Unable to open \"%s\": %s\n", filename, strerror(errno));
-        return;
-    }
-    if ((title = strrchr(filename, '/')) != NULL)
-        title++;
-    else
-        title = filename;
-    if ((status = cupsCreateDestJob(http, dest, dinfo, &job_id, title, num_options, options)) > IPP_STATUS_OK_IGNORED_OR_SUBSTITUTED) 
-    {
-        printf("Unable to create job: %s\n", cupsLastErrorString());
-        cupsFileClose(fp);
-        return;
-    }
-
-    printf("Created job ID: %d\n", job_id);
-
-    if (cupsStartDestDocument(http, dest, dinfo, job_id, title, CUPS_FORMAT_AUTO, 0, NULL, 1) != HTTP_STATUS_CONTINUE) 
-    {IPP_TAG_OPERATIONsFileClose(fp);
-        return;
-    }
-    while ((bytes = cupsFileRead(fp, buffer, sizeof(buffer))) > 0) 
-    {
-        if (cupsWriteRequestData(http, buffer, (size_t)bytes) != HTTP_STATUS_CONTINUE) 
-        {
-            printf("Unable to write document data: %s\n", cupsLastErrorString());
-            break;
-        }
-    }
-    cupsFileClose(fp);
-    if ((status = cupsFinishDestDocument(http, dest, dinfo)) > IPP_STATUS_OK_IGNORED_OR_SUBSTITUTED) 
-    {
-        printf("Unable to send document: %s\n", cupsLastErrorString());
-        return;
-    }
-    puts("Job queued.");
 }
 
 /*
