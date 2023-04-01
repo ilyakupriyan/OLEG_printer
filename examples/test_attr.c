@@ -2,7 +2,6 @@
 #include <cups/cups.h>
 #include <errno.h>
 
-static void	printFile(http_t *http, cups_dest_t *dest, cups_dinfo_t *dinfo, const char *filename, int num_options, cups_option_t *options);
 ipp_t *getPrinterAttr(cups_dest_t *dest);
 
 int main (int argc, char *argv[]) {
@@ -38,34 +37,41 @@ int main (int argc, char *argv[]) {
 
     if (!strcmp(argv[2], "print") && argc > 3)  /*print option*/
     {
-                int			          i,		/* Looping var */
-                        num_options = 0,        /* Number of options */
-                               num_jobs;        /* destination number of jobs */
-        cups_option_t	*options = NULL;        /* Options */
-        char           file_print[1024];     
-        ipp_status_t             status;   
+                int			          i,		    /* Looping var */
+                            num_options = 0,        /* Number of options */
+                               num_jobs;            /* destination number of jobs */
+        cups_option_t	       *options = NULL;     /* Options */ 
         ipp_jstate_t          job_state = IPP_JOB_PENDING;
-        cups_job_t                *jobs;        /* Jobs of destination */
+        cups_job_t                *jobs;            /* Jobs of destination */
 
 
         for (i = 4; i < argc; i ++)
             num_options = cupsParseOptions(argv[i], num_options, &options);
         job_id = cupsPrintFile(dest->name, argv[3], "Test print", num_options, options);
 
-
-        if ((status = cupsFinishDestDocument(http, dest, dinfo)) > IPP_STATUS_OK_IGNORED_OR_SUBSTITUTED) 
-        {
-            printf("Unable to send document: %s\n", cupsLastErrorString());
-            return;
-        }
+        printf ("Job ID: %d\n", job_id);
 
         while (job_state < IPP_JOB_STOPPED)
         {
-
             num_jobs = cupsGetJobs(&jobs, dest->name, 1, CUPS_WHICHJOBS_ALL);
 
+            /* Loop to find my job */
+            job_state = IPP_JOB_COMPLETED;
+
             /* Selection of job state in destination */
-            job_state = jobs[job_id].state;
+            for (i = 0; i < num_jobs; i ++) 
+            {
+                if (jobs[i].id == job_id)
+                {
+                    job_state = jobs[i].state;
+                    break;
+                }
+            }
+                
+            printf("Code of job: %d\n", job_state);
+
+            /* Free the job array */
+            cupsFreeJobs(num_jobs, jobs);
 
             /* Show the current state */
             switch (job_state)
@@ -95,7 +101,7 @@ int main (int argc, char *argv[]) {
 
             /* Sleep if the job is not finished */
             if (job_state < IPP_JOB_STOPPED)
-                sleep(5);
+                sleep(2);
         }
     }
 
@@ -109,14 +115,14 @@ int main (int argc, char *argv[]) {
 
     if ((attr = ippFindAttribute(response, "printer-state", IPP_TAG_ENUM)) != NULL)
     {
-        printf("printer-state=%s\n", ippEnumString("printer-state", ippGetInteger(attr, 0)));
+        printf("printer-state= %s\n", ippEnumString("printer-state", ippGetInteger(attr, 0)));
     }
     else
         puts("printer-state=unknown");
 
     if ((attr = ippFindAttribute(response, "printer-state-message", IPP_TAG_TEXT)) != NULL)
     {
-        printf("printer-state-message=\"%s\"\n", ippGetString(attr, 0, NULL));
+        printf("printer-state-message= \"%s\"\n", ippGetString(attr, 0, NULL));
     }
 
     if ((attr = ippFindAttribute(response, "printer-state-reasons", IPP_TAG_KEYWORD)) != NULL)
