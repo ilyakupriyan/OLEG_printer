@@ -1,6 +1,6 @@
 /* This header file is intended for local error in printing system */
 
-enum error {
+typedef enum err_locale {
     ERROR_DISCONNECT_DEST
     
-};
+} err_locale;
