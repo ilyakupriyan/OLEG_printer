@@ -27,7 +27,7 @@ int main(void)
     const cJSON        *dest_name = NULL;   /* destination name in JSON */
     FILE               *conf_fp;            /* Pointer to file desrciptor  */
     cups_dest_t        *dest;               /* Destination for printing */
-    err_locale          error;              /* System errors */
+    printer_error       error;              /* System errors */
 
     /* Getting JSON objects */        
     conf_fp = fopen(conf_file, "r");

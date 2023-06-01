@@ -18,7 +18,7 @@ int main(void)
     sock_server = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_server < 0)
     {
-        perror("Socket clinet");
+        perror("Socket client");
         exit(1);
     }
 
@@ -33,6 +33,7 @@ int main(void)
 
     test_sock(sock_server);
 }
+
 
 
 ////////////////////////
