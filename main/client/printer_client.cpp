@@ -34,8 +34,12 @@ int main(void)
     test_sock(sock_server);
 }
 
+
+////////////////////////
+//  Function test block
+////////////////////////
 int test_sock(int sock) {
-    char        mess[] = "Test socket!",
+    char        mess[] = "Test!",
                 rec_mess[sizeof(mess)];
     send(sock, mess, sizeof(mess), 0);
     recv(sock, rec_mess, sizeof(rec_mess), 0);

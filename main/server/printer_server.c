@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include "../include/error.h"
-#include <../include/cJSON.h>
+#include "../include/cJSON.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -20,8 +20,7 @@ int main(void)
                         listener,           /* Pointer to listening socket */
                         bytes_read;         /* Number bytes, which will be reading */
     sockaddr_in         addr;               /* Structure with data of adress */
-    char                data[1024],         /* For transmiting and receiving data using socket */
-                       *JSON_str,           /* Text from file conf.JSON*/
+    char               *JSON_str,           /* Text from file conf.JSON*/
                        *dest_str;           /* Destination in string format */
     cJSON              *config,             /* JSON file with configuration */
                        *ipp;                /* String with ipp destination */
@@ -32,7 +31,8 @@ int main(void)
 
     /* Getting JSON objects */        
     conf_fp = fopen(conf_file, "r");
-    do {
+    do 
+    {
         char *buf;
         fgets(buf, 512, conf_fp);
         strcat(JSON_str, buf);
@@ -40,26 +40,27 @@ int main(void)
         {
             break;
         }   
-    } while (1);
+    } 
+    while (1);
+    fclose(conf_file);
     config = cJSON_Parse(JSON_str);
 
     /* Getting destination */
     dest_name = cJSON_GetObjectItemCaseSensitive(config, "dest");
     dest_str = cJSON_Print(dest_name);
     dest = cupsGetDestWithURI(NULL, dest_str);
-    if (!dest) 
+    while (dest == NULL) 
     {
         
     }
 
-    listener = socket(AF_INET, SOCK_STREAM, 0); /* Creating a new socket*/
-    if (listener < 0) 
+    if (listener = socket(AF_INET, SOCK_STREAM, 0))
     {
         perror("Socket server");
         exit(1);
     }
 
-    /* Setting of connection properties*/
+    /* Setting of connection properties */
     addr.sin_family = AF_INET;
     addr.sin_port   = htons(3452);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -75,8 +76,7 @@ int main(void)
     for (int i = 1; test_sock(listener) == 0 && i <= 3; i++)
     {
         puts("Connection was not realised\n");
-        sleep(3);
-        if (i == 3)
+        sleep(2);
         {
             exit(3);
         }
@@ -98,8 +98,12 @@ int main(void)
     // }
 }
 
+
+////////////////////////
+//  Funsction test block
+////////////////////////
 int test_sock(int listener) {
-    char    *sample = "Test socket!",
+    char    *sample = "Test!",
             *data;
     int      socket,
              bytes_read;
@@ -116,3 +120,4 @@ int test_sock(int listener) {
     close(socket);
     return 1;
 }
+
