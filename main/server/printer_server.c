@@ -2,17 +2,20 @@
 #include <cups/cups.h>
 #include <string.h>
 #include <errno.h>
-#include "../include/error.h"
+#include "../include/printer_state.h"
 #include "../include/cJSON.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#define __DEBUG
+
 typedef struct sockaddr sockaddr;
 typedef struct sockaddr_in sockaddr_in;
 
-const char *conf_file = "conf.json";
+const char *conf_file = "config.json";
 
-int test_sock(int sock);                  /* Function for testing connection to client */
+int test_sock(int sock);                    /* Function for testing connection to client */
+int test_JSON(cJSON* json_s);               /* Test function of parsing JSON */
 
 int main(void) 
 {
@@ -27,9 +30,8 @@ int main(void)
     const cJSON        *dest_name = NULL;   /* destination name in JSON */
     FILE               *conf_fp;            /* Pointer to file desrciptor  */
     cups_dest_t        *dest;               /* Destination for printing */
-    printer_error       error;              /* System errors */
 
-    /* Getting JSON objects */        
+    /* Reading file with JSON objects */        
     conf_fp = fopen(conf_file, "r");
     do 
     {
@@ -43,7 +45,16 @@ int main(void)
     } 
     while (1);
     fclose(conf_file);
-    config = cJSON_Parse(JSON_str);
+    config = cJSON_Parse(JSON_str);     //Parsing JSON
+    if (config == NULL) 
+    {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "JSON error before: %s\n", error_ptr);
+        }
+        exit(1);
+    }
 
     /* Getting destination */
     dest_name = cJSON_GetObjectItemCaseSensitive(config, "dest");
@@ -54,21 +65,20 @@ int main(void)
         
     }
 
+    /* Socket setting */
     if (listener = socket(AF_INET, SOCK_STREAM, 0))
     {
-        perror("Socket server");
-        exit(1);
+        perror("Socket server: ");
+        exit(2);
     }
-
-    /* Setting of connection properties */
     addr.sin_family = AF_INET;
     addr.sin_port   = htons(3452);
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if(bind(listener, (sockaddr *) &addr, sizeof(addr)) < 0)
     {
-        perror("Bind");
-        exit(2);
+        perror("Server bind");
+        exit(3);
     }
 
     listen(listener, 1); /*Setting socket to listening */
@@ -78,24 +88,44 @@ int main(void)
         puts("Connection was not realised\n");
         sleep(2);
         {
-            exit(3);
+            exit(4);
         }
     }
 
-    // while (1) 
-    // {
-    //     /* Creating server socket */
-    //     sock = accept(listener, NULL, NULL);  
-    //     if (sock < 0) 
-    //     {
-    //         perror("Accept");
-    //         exit(3);
-    //     }
+    while (1) 
+    {  
+        #ifdef __DEBUG
+        #endif
 
-    //     bytes_read = recv(sock, data, 1024, 0);
+        int command;
+
+        /* Creating server socket */
+        sock = accept(listener, NULL, NULL);  
+        if (sock < 0) 
+        {
+            perror("Accept");
+            exit(3);
+        }
+        bytes_read = recv(sock, &command, 1024, 0);
+
+        if (command == PRINTER_INFO)
+        {   
+            char    *printer_st,
+                    *printer_st_reasons;
+            printer_st = cupsGetOption("printer-state", dest->num_options, dest->options);
+            printer_st_reasons = cupsGetOption("printer_st_reasons", dest->num_options, dest->options);
+
+            #ifdef __DEBUG
+                printf("%s:\n", dest->name);
+                printf("State: %s\n", printer_st);
+                printf("State-reasons: %s\n", printer_st_reasons);
+            #endif
+        }
         
-    //     close(sock);
-    // }
+        close(sock);
+
+
+    }
 }
 
 
@@ -120,4 +150,3 @@ int test_sock(int listener) {
     close(socket);
     return 1;
 }
-

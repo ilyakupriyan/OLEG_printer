@@ -1,6 +1,8 @@
 /* This header file is intended for local error in printing system */
 
-typedef enum err_locale {
-    ERROR_DISCONNECT_DEST
-    
-} err_locale;
+//destination error
+typedef enum printer_error_e
+{
+    ERROR_DISCONNECT_DEST,          //Disconnected printer error
+    OTHER_ERROR                     //Other types error
+} printer_error;

@@ -1,9 +1,11 @@
 #include <iostream>
-#include <../include/error.h>
+#include <../include/printer_state.h>
 #include <sys/types.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#define __DEBUG
 
 typedef struct sockaddr_in sockaddr_in;
 typedef struct sockaddr sockaddr;
@@ -32,6 +34,10 @@ int main(void)
     }
 
     test_sock(sock_server);
+
+    #ifdef __DEBUG
+        
+    #endif
 }
 
 
