@@ -110,16 +110,30 @@ int main(void)
 
         if (command == PRINTER_INFO)
         {   
-            char    *printer_st,
+            char    *printer_st_s,
                     *printer_st_reasons;
-            printer_st = cupsGetOption("printer-state", dest->num_options, dest->options);
+            int      printer_st_i;
+            printer_st_s = cupsGetOption("printer-state", dest->num_options, dest->options);
             printer_st_reasons = cupsGetOption("printer_st_reasons", dest->num_options, dest->options);
 
             #ifdef __DEBUG
                 printf("%s:\n", dest->name);
-                printf("State: %s\n", printer_st);
+                printf("State: %s\n", printer_st_s);
                 printf("State-reasons: %s\n", printer_st_reasons);
             #endif
+
+            printer_st_i = atoi(printer_st_s);
+
+            //Proccessing the printer state
+            switch (printer_st_i) {
+                case PRINTER_WORK:
+                case PRINTER_IDLE:
+
+                break;
+                case PRINTER_STOPPED:
+
+                break; 
+            }
         }
         
         close(sock);
