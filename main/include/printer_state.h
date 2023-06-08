@@ -3,7 +3,7 @@
 //state of destination
 typedef enum printer_state_e
 {
-    PRINTER_WORK = 3,                           //Printer is working
+    PRINTER_WORK = 3,                       //Printer is working
     PRINTER_IDLE,                           //Printer is idle
     PRINTER_STOPPED,                        //PRinter is stopped
     PRINTER_ERROR_DISCONNECT_DEST,          //Disconnected printer error

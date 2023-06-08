@@ -104,7 +104,7 @@ int main(void)
         if (sock < 0) 
         {
             perror("Accept");
-            exit(3);
+            exit(5);
         }
         bytes_read = recv(sock, &command, 1024, 0);
 
@@ -128,10 +128,12 @@ int main(void)
             switch (printer_st_i) {
                 case PRINTER_WORK:
                 case PRINTER_IDLE:
-
+                    
                 break;
                 case PRINTER_STOPPED:
+                    #ifdef __DEBUF
 
+                    #endif
                 break; 
             }
         }

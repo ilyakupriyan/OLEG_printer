@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 
 #define __DEBUG
 
@@ -14,7 +15,9 @@ int test_sock(int sock);     /* Function for testing connection to server */
 
 int main(void) 
 {
-    int             sock_server;            /* Pointer to socket descriptor */
+    int             sock_server,            /* Pointer to socket descriptor */
+                    comm_server,            /* Code of command to server */
+                    answ_server;            /* Answer_from server */
     sockaddr_in     addr_server;            /* Structure with address */
 
     sock_server = socket(AF_INET, SOCK_STREAM, 0);
@@ -33,11 +36,34 @@ int main(void)
         exit(2);
     }
 
-    test_sock(sock_server);
-
+    for (int i = 1; test_sock(sock_server) == 0 && i <= 3; i++)
+    {
+        puts("Connection was not realised\n");
+        sleep(2);
+        {
+            exit(3);
+        }
+    }
     #ifdef __DEBUG
-        
+    comm_server = PRINTER_INFO;
     #endif
+    
+    send(sock_server, &comm_server, sizeof(comm_server), 0);
+    recv(sock_server, (int *) &answ_server, sizeof(answ_server), 0);
+    
+
+    switch (answ_server) {
+        case PRINTER_WORK:
+        case PRINTER_IDLE:
+            printf ("Printer state: %d\n", answ_server);
+        break;
+        case PRINTER_STOPPED:
+
+        break;
+        default:
+
+        break;
+    }
 }
 
 
