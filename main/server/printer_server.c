@@ -128,11 +128,11 @@ int main(void)
             switch (printer_st_i) {
                 case PRINTER_WORK:
                 case PRINTER_IDLE:
-                    
+                    send(sock, (int *) &printer_st_i, sizeof(printer_st_i), 0);
                 break;
                 case PRINTER_STOPPED:
-                    #ifdef __DEBUF
-
+                    #ifdef __DEBUG
+                    send(sock, (int *) &printer_st_i, sizeof(printer_st_i), 0);
                     #endif
                 break; 
             }

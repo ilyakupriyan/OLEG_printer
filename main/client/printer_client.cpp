@@ -55,10 +55,14 @@ int main(void)
     switch (answ_server) {
         case PRINTER_WORK:
         case PRINTER_IDLE:
+            #ifdef __DEBUG
             printf ("Printer state: %d\n", answ_server);
+            #endif
         break;
         case PRINTER_STOPPED:
-
+            #ifdef __DEBUG
+            printf ("Printer-state-reasons: %d\n", answ_server);
+            #endif
         break;
         default:
 
