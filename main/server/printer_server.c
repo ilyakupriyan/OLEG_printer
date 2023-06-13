@@ -24,10 +24,10 @@ int main(void)
                         bytes_read;         /* Number bytes, which will be reading */
     sockaddr_in         addr;               /* Structure with data of adress */
     char               *JSON_str,           /* Text from file conf.JSON*/
-                       *dest_str;           /* Destination in string format */
+                       *dest_URI_str;           /* Destination in string format */
     cJSON              *config,             /* JSON file with configuration */
                        *ipp;                /* String with ipp destination */
-    const cJSON        *dest_name = NULL;   /* destination name in JSON */
+    const cJSON        *dest_URI_name = NULL;   /* destination name in JSON */
     FILE               *conf_fp;            /* Pointer to file desrciptor  */
     cups_dest_t        *dest;               /* Destination for printing */
 
@@ -57,9 +57,9 @@ int main(void)
     }
 
     /* Getting destination */
-    dest_name = cJSON_GetObjectItemCaseSensitive(config, "dest");
-    dest_str = cJSON_Print(dest_name);
-    dest = cupsGetDestWithURI(NULL, dest_str);
+    dest_URI_name = cJSON_GetObjectItemCaseSensitive(config, "IPP");
+    dest_URI_str = cJSON_Print(dest_URI_name);
+    dest = cupsGetDestWithURI(NULL, dest_URI_str);
     while (dest == NULL) 
     {
         
