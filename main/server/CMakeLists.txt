@@ -2,9 +2,11 @@ cmake_minimum_required (VERSION 2.8.8)
 
 project (server)
 
+find_package(Cups REQUIRED)
+
 add_executable(server "printer_server.c")
 
-include_directories("$(PROJECT_SOURCE_DIR)/../include")
+include_directories("$(PROJECT_SOURCE_DIR)/include/")
 
 #cJSON include
 target_link_libraries(server cJSON)

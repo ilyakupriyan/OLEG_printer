@@ -44,7 +44,7 @@ int main(void)
         }   
     } 
     while (1);
-    fclose(conf_file);
+    fclose(conf_fp);
     config = cJSON_Parse(JSON_str);     //Parsing JSON
     if (config == NULL) 
     {
@@ -108,11 +108,12 @@ int main(void)
         }
         bytes_read = recv(sock, &command, 1024, 0);
 
+        /* */
         if (command == PRINTER_INFO)
         {   
-            char    *printer_st_s,
-                    *printer_st_reasons;
-            int      printer_st_i;
+            const char      *printer_st_s,
+                            *printer_st_reasons;
+            int              printer_st_i;
             printer_st_s = cupsGetOption("printer-state", dest->num_options, dest->options);
             printer_st_reasons = cupsGetOption("printer_st_reasons", dest->num_options, dest->options);
 
@@ -137,10 +138,16 @@ int main(void)
                 break; 
             }
         }
+        else if (command == PRINT_FILE) 
+        {
+            int path_file_size = 0;
+            bytes_read = recv(sock, (int *) &path_file_size, sizeof(path_file_size), 0);
+
+            char *path_file = calloc (path_file_size, sizeof(char));
+            bytes_read = recv(sock, (char *) path_file, path_file_size, 0);
+        }
         
         close(sock);
-
-
     }
 }
 

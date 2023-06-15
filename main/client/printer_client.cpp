@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../include/printer_state.h"
 #include <sys/types.h>
+#include <cups/cups.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -48,26 +49,30 @@ int main(void)
     comm_server = PRINTER_INFO;
     #endif
     
-    send(sock_server, &comm_server, sizeof(comm_server), 0);
+    send(sock_server, &comm_server, sizeof(comm_server), 0);                    //sending command to server
     recv(sock_server, (int *) &answ_server, sizeof(answ_server), 0);
     
+    if (comm_server == PRINTER_INFO) 
+    {
+        switch (answ_server) 
+        {
+            case PRINTER_WORK:
+            case PRINTER_IDLE:
+                #ifdef __DEBUG
+                printf ("Printer state: %d\n", answ_server);
+                #endif
+            break;
+            case PRINTER_STOPPED:
+                #ifdef __DEBUG
+                printf ("Printer-state-reasons: %d\n", answ_server);
+                #endif
+            break;
+            default:
 
-    switch (answ_server) {
-        case PRINTER_WORK:
-        case PRINTER_IDLE:
-            #ifdef __DEBUG
-            printf ("Printer state: %d\n", answ_server);
-            #endif
-        break;
-        case PRINTER_STOPPED:
-            #ifdef __DEBUG
-            printf ("Printer-state-reasons: %d\n", answ_server);
-            #endif
-        break;
-        default:
-
-        break;
+            break;
+        }
     }
+    
 }
 
 
