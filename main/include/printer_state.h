@@ -16,7 +16,7 @@ typedef enum server_command_e
     PRINTER_INFO,                           //Information about printer
     PRINT_FILE,                             //Print file 
     PRINT_INFO,                             //State of last job
-    INFO_JOBS                               //State of jobs
+    INFO_JOB                                //State of job
 } server_command;
 
 typedef enum job_state_e

@@ -12,12 +12,14 @@
 typedef struct sockaddr sockaddr;
 typedef struct sockaddr_in sockaddr_in;
 
+#ifdef __DEBUG
 const char *conf_file = "config.json";
+#endif
 
-int test_sock(int sock);                    /* Function for testing connection to client */
-int test_JSON(cJSON* json_s);               /* Test function of parsing JSON */
+int test_sock(int sock);                            /* Function for testing connection to client */
+cJSON* readingCJSON(const char *JSON_file_ptr);     /* Function to read text file for converting to JSON format */
 
-int main(void) 
+int main(int argc, char *argv[]) 
 {
     int                 sock,               /* Pointer to socket descriptor*/
                         listener,           /* Pointer to listening socket */
@@ -31,21 +33,15 @@ int main(void)
     FILE               *conf_fp;            /* Pointer to file desrciptor  */
     cups_dest_t        *dest;               /* Destination for printing */
 
-    /* Reading file with JSON objects */        
-    conf_fp = fopen(conf_file, "r");
-    do 
-    {
-        char *buf;
-        fgets(buf, 512, conf_fp);
-        strcat(JSON_str, buf);
-        if (strrchr(buf, EOF) == NULL)
-        {
-            break;
-        }   
-    } 
-    while (1);
-    fclose(conf_fp);
-    config = cJSON_Parse(JSON_str);     //Parsing JSON
+    /* Reading file with JSON objects */   
+    #ifdef __DEBUG
+    config = readingCJSON(conf_file);
+    #endif
+
+    #ifndef __DEBUG
+    config = readingCJSON(argv[1]);
+    #endif
+
     if (config == NULL) 
     {
         const char *error_ptr = cJSON_GetErrorPtr();
@@ -146,11 +142,43 @@ int main(void)
             char *path_file = calloc (path_file_size, sizeof(char));
             bytes_read = recv(sock, (char *) path_file, path_file_size, 0);
         }
-        
+        else if (command == PRINT_INFO)
+        {
+
+        }
+        else if (command == INFO_JOB)
+        {
+
+        }
+
         close(sock);
     }
 }
 
+/*
+ * readingCJSON - function to read text file for converting to JSON format
+ * O (cJSON *) - pointer to JSON
+ * I (const char *JSON_file_ptr) - pointer to text file with JSON 
+ */
+cJSON* readingCJSON(const char *JSON_file_ptr)          
+{
+    FILE * JSON_fp;
+    char * JSON_str;
+    JSON_fp = fopen(JSON_file_ptr, "r");
+    do 
+    {
+        char *buf;
+        fgets(buf, 512, JSON_fp);
+        strcat(JSON_str, buf);
+        if (strrchr(buf, EOF) == NULL)
+        {
+            break;
+        }   
+    } 
+    while (1);
+    fclose(JSON_fp);
+    return cJSON_Parse(JSON_str);     //Parsing JSON
+}
 
 ////////////////////////
 //  Funsction test block
