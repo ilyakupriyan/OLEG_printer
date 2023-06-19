@@ -17,7 +17,7 @@ const char *conf_file = "config.json";
 #endif
 
 int test_sock(int sock);                            /* Function for testing connection to client */
-cJSON* readingCJSON(const char *JSON_file_ptr);     /* Function to read text file for converting to JSON format */
+cJSON* readingJSON(const char *JSON_file_ptr);     /* Function to read text file for converting to JSON format */
 
 int main(int argc, char *argv[]) 
 {
@@ -35,11 +35,11 @@ int main(int argc, char *argv[])
 
     /* Reading file with JSON objects */   
     #ifdef __DEBUG
-    config = readingCJSON(conf_file);
+    config = readingJSON(conf_file);
     #endif
 
     #ifndef __DEBUG
-    config = readingCJSON(argv[1]);
+    config = readingJSON(argv[1]);
     #endif
 
     if (config == NULL) 
@@ -48,6 +48,10 @@ int main(int argc, char *argv[])
         if (error_ptr != NULL)
         {
             fprintf(stderr, "JSON error before: %s\n", error_ptr);
+        }
+        else
+        {
+            fprintf (stderr, "Error: couldn't get JSON\n");
         }
         exit(1);
     }
@@ -136,15 +140,16 @@ int main(int argc, char *argv[])
         }
         else if (command == PRINT_FILE) 
         {
-            int path_file_size = 0;
+            int path_file_size = 0;             //count of symbol in file path
             bytes_read = recv(sock, (int *) &path_file_size, sizeof(path_file_size), 0);
 
             char *path_file = calloc (path_file_size, sizeof(char));
             bytes_read = recv(sock, (char *) path_file, path_file_size, 0);
+
         }
         else if (command == PRINT_INFO)
         {
-
+            
         }
         else if (command == INFO_JOB)
         {
@@ -156,15 +161,20 @@ int main(int argc, char *argv[])
 }
 
 /*
- * readingCJSON - function to read text file for converting to JSON format
+ * readingJSON - function to read text file for converting to JSON format
  * O (cJSON *) - pointer to JSON
  * I (const char *JSON_file_ptr) - pointer to text file with JSON 
  */
-cJSON* readingCJSON(const char *JSON_file_ptr)          
+cJSON* readingJSON(const char *JSON_file_ptr)          
 {
     FILE * JSON_fp;
     char * JSON_str;
     JSON_fp = fopen(JSON_file_ptr, "r");
+    if (JSON_fp == NULL)
+    {
+        return 0;
+    }
+
     do 
     {
         char *buf;
