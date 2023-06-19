@@ -16,8 +16,9 @@ typedef struct sockaddr_in sockaddr_in;
 const char *conf_file = "config.json";
 #endif
 
-int test_sock(int sock);                            /* Function for testing connection to client */
-cJSON* readingJSON(const char *JSON_file_ptr);     /* Function to read text file for converting to JSON format */
+int test_sock(int sock);                                                    
+cJSON* readingJSON(const char *JSON_file_ptr);                              
+printer_state_reason_t getStateReason (const char *state_reasons_str);  
 
 int main(int argc, char *argv[]) 
 {
@@ -111,19 +112,21 @@ int main(int argc, char *argv[])
         /* */
         if (command == PRINTER_INFO)
         {   
-            const char      *printer_st_s,
-                            *printer_st_reasons;
-            int              printer_st_i;
-            printer_st_s = cupsGetOption("printer-state", dest->num_options, dest->options);
-            printer_st_reasons = cupsGetOption("printer_st_reasons", dest->num_options, dest->options);
+            const char      *printer_st_str,
+                            *printer_st_reasons_str;
+            int              printer_st_i,
+                             printer_st_reasons_i;
+
+            printer_st_str = cupsGetOption("printer-state", dest->num_options, dest->options);
+            printer_st_reasons_str = cupsGetOption("printer-state-reasons", dest->num_options, dest->options);
 
             #ifdef __DEBUG
                 printf("%s:\n", dest->name);
-                printf("State: %s\n", printer_st_s);
-                printf("State-reasons: %s\n", printer_st_reasons);
+                printf("State: %s\n", printer_st_str);
+                printf("State-reasons: %s\n", printer_st_reasons_str);
             #endif
 
-            printer_st_i = atoi(printer_st_s);
+            printer_st_i = atoi(printer_st_str);
 
             //Proccessing the printer state
             switch (printer_st_i) {
@@ -132,9 +135,8 @@ int main(int argc, char *argv[])
                     send(sock, (int *) &printer_st_i, sizeof(printer_st_i), 0);
                 break;
                 case PRINTER_STOPPED:
-                    #ifdef __DEBUG
-                    send(sock, (int *) &printer_st_i, sizeof(printer_st_i), 0);
-                    #endif
+                    printer_st_reasons_i = getStateReason(printer_st_reasons_str);
+                    send(sock, (int *) printer_st_reasons_i, sizeof(printer_st_reasons_i), 0);
                 break; 
             }
         }
@@ -161,7 +163,7 @@ int main(int argc, char *argv[])
 }
 
 /*
- * readingJSON - function to read text file for converting to JSON format
+ * readingJSON - Read text file for converting to JSON format
  * O (cJSON *) - pointer to JSON
  * I (const char *JSON_file_ptr) - pointer to text file with JSON 
  */
@@ -188,6 +190,49 @@ cJSON* readingJSON(const char *JSON_file_ptr)
     while (1);
     fclose(JSON_fp);
     return cJSON_Parse(JSON_str);     //Parsing JSON
+}
+
+/*
+ * getStateReason - Convert from string state reasons to printer_state_reason_t
+ * O (printer_state_reason_t) - printer state reason in the enum format
+ * I (const char *state_reason) - printer state reason in string format
+ */
+printer_state_reason_t getStateReason (const char *state_reasons_str)
+{
+    printer_state_reason_t state_reason_value;
+
+    if (!strcmp(state_reasons_str, "connecting-to-device"))
+        state_reason_value = CONNECTING_TO_DEVICE;
+    else if (!strcmp(state_reasons_str, "cover-open"))
+        state_reason_value = COVER_OPEN;
+    else if (!strcmp(state_reasons_str, "input-tray-missing"))
+        state_reason_value = INPUT_TRAY_MISSING;  
+    else if (!strcmp(state_reasons_str, "marker-supply-empty"))
+        state_reason_value = MARKER_SUPPLY_EMPTY;
+    else if (!strcmp(state_reasons_str, "marker-supply-low"))
+        state_reason_value = MARKER_SUPPLY_LOW;
+    else if (!strcmp(state_reasons_str, "marker-waste-almost-full"))
+        state_reason_value = MARKER_WASTE_ALMOST_FULL;
+    else if (!strcmp(state_reasons_str, "marker-waste-full"))
+        state_reason_value = MARKER_WASTE_FULL;
+    else if (!strcmp(state_reasons_str, "media-empty"))
+        state_reason_value = MEDIA_EMPTY;
+    else if (!strcmp(state_reasons_str, "media-jam"))
+        state_reason_value = MEDIA_JAM;
+    else if (!strcmp(state_reasons_str, "media-low"))
+        state_reason_value = MEDIA_LOW;
+    else if (!strcmp(state_reasons_str, "marker-needed"))
+        state_reason_value = MEDIA_NEEDED;
+    else if (!strcmp(state_reasons_str, "paused"))
+        state_reason_value = PAUSED;
+    else if (!strcmp(state_reasons_str, "timed-out"))
+        state_reason_value = TIMED_OUT;
+    else if (!strcmp(state_reasons_str, "toner-empty"))
+        state_reason_value = TONER_EMPTY;
+    else if (!strcmp(state_reasons_str, "toner-low"))
+        state_reason_value = TONER_LOW;
+
+    return state_reason_value;
 }
 
 ////////////////////////
